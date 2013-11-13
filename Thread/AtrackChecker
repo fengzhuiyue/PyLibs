@@ -1,0 +1,120 @@
+import urllib2
+import sqlite3 as lite
+import cStringIO
+import os
+import csv
+import datetime,time
+from threading import Thread,Lock
+from Queue import Queue
+
+q = Queue()
+NUM = 2
+JOBS = 10
+
+
+con = lite.connect('W:\\AtrackChecker.sqlite')
+with con:    
+    cur = con.cursor()    
+    cur.execute("SELECT AtrackID,Name FROM Member order by EID desc")
+    rows = cur.fetchall()
+
+now = time.strftime("%Y%m%d %H%M%S")
+w = csv.writer(file('xxx hours-%s.csv' %now, 'wb'))
+TempList=[]
+endtime=time.strftime("%m")+'%2f'+time.strftime("%d")+'%2f'+time.strftime("%Y")
+starttime=time.strftime("%m")+'%2f'+str(int(time.strftime("%d"))-5)+'%2f'+time.strftime("%Y")
+
+urls=('http://atrack.statestr.com/reports/atr001l.cfm?report_start_date='+starttime+'&report_end_date='+endtime+'&report_id=atr001&output=web&department=&employee_number='+str(row[0])+'%20%20%20%20&department_id=sqa%20%20&emp_department_id=sqa%20%20' for row in rows )
+# print url
+# for row in rows:
+    # try:
+        # st = time.time()
+        # fh=cStringIO.StringIO()
+        # url='http://xxx/reports/atr001l.cfm?report_start_date='+starttime+'&report_end_date='+endtime+'&report_id=atr001&output=web&department=&employee_number='+str(row[0])+'%20%20%20%20&department_id=sqa%20%20&emp_department_id=sqa%20%20'
+        # page=urllib2.urlopen(url).read()
+        # fh.write(page)
+        # et=time.time()
+        # print et-st
+        # location=page.index('Total Hours')
+        # fh.seek(location)
+        # for i in range(0,3):
+            # fh.readline()
+        # totalHours=fh.readline()[5:10]
+        # TempList.append([row[1],totalHours])
+
+    # except urllib2.HTTPError, e:
+        # print e.code
+class Fetcher:
+    def __init__(self,threads):
+        self.lock = Lock() #线程锁
+        self.q_req = Queue() #任务队列
+        self.q_ans = Queue() #完成队列
+        self.threads = threads
+        for i in range(threads):
+            t = Thread(target=self.threadget)
+            t.setDaemon(True)
+            t.start()
+        self.running = 0
+ 
+    def __del__(self): #解构时需等待两个队列完成
+        time.sleep(0.5)
+        self.q_req.join()
+        self.q_ans.join()
+ 
+    def taskleft(self):
+        return self.q_req.qsize()+self.q_ans.qsize()+self.running
+ 
+    def push(self,req):
+        self.q_req.put(req)
+ 
+    def pop(self):
+        return self.q_ans.get()
+ 
+    def threadget(self):
+        while True:
+            req = self.q_req.get()
+            with self.lock: #要保证该操作的原子性，进入critical area
+                self.running += 1
+            # try:
+            # ans = self.opener.open(req).read()
+            page=urllib2.urlopen(req).read()
+            location=page.index('Total Hours')
+            fh=cStringIO.StringIO()
+            fh.write(page)
+            fh.seek(location)
+            for i in range(0,3):
+                fh.readline()
+            totalHours=fh.readline()[5:10]
+            TempList.append(totalHours)             
+                
+                
+                
+            # except Exception, what:
+                # ans = ''
+                # print what
+            # self.q_ans.put((req,ans))
+            with self.lock:
+                self.running -= 1
+            self.q_req.task_done()
+            # time.sleep(0.1) # don't spam
+
+        
+        
+        
+        
+st = time.time()
+f =Fetcher(threads=28)
+for url in urls:
+    f.push(url)
+while f.taskleft():
+    f.pop()
+st = time.time()
+et=time.time()
+print et-st
+# time.sleep(5)
+# i=0
+print TempList
+# for row in rows:
+    # w.writerow([row[1],TempList[i]])
+    # i=i+1
+
