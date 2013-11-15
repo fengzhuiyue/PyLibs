@@ -1,10 +1,3 @@
-2013-03-11 磁针石
-
-#承接软件自动化实施与培训等gtalk：ouyangchongwu#gmail.comqq 37391319 博客:http://blog.csdn.net/oychw
-#版权所有，转载刊登请来函联系
-# 深圳测试自动化python项目接单群113938272深圳会计软件测试兼职 6089740 
-#深圳地摊群 66250781武冈洞口城步新宁乡情群49494279
-#自动化测试和python群组： http://groups.google.com/group/automation_testing_python
 #参考资料：《The PythonStandard Library by Example 2011》
 #http://docs.python.org/2/howto/sockets.html
  
