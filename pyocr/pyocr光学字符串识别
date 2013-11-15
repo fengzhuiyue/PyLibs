@@ -1,0 +1,35 @@
+进行验证码破解的时候往往需要用到OCR技术。Python新出了一个pyocr模块（https://pypi.python.org/pypi/pyocr/0.1.2）。它是Tesseract-OCR（http://code.google.com/p/tesseract-ocr/）和Cuneiform。它可以读取
+Python图像库支持的类型，包括JPEG，PNG，GIF，BMP，TIFF等。不过tesseract-OC只支持TIFF和BMP。
+Cuneiform这个东东，在网上没有找到资料，有知道的告诉我下。以centos 6.4为例，Cuneiform和tesseract都可以通过yum安装。
+另外需要注意一下依赖关系：
+依赖：
+* Pyocr需要的Python 2.5或更高版本。
+*需要Python图像库（PIL）。在Debian/Ubuntu的，叫"python-imaging"
+*安装OCR：
+  *1，tesseract： http://code.google.com/p/tesseract-ocr/ TESSERACT。可以通过命令行调用tesseract。推荐版本>= 3.01。
+  *2，cuneiform
+ 
+ 
+实例：下面有两个经过处理之后的验证码，可以通过pyocr转为文字。如果看不到图片，可以联系我获取word文档。
+    
+import Image
+import sys
+from pyocrimport pyocr
+ 
+tools = pyocr.get_available_tools()[:]
+if len(tools)== 0:
+    print "No OCR tool found"
+    sys.exit(1)
+print"Using '%s'" % (tools[0].get_name())
+printtools[0].image_to_string(Image.open('output.bmp'))
+printtools[0].image_to_string(Image.open('output2.bmp'))
+ 
+         执行结果：
+[root@bogon neil]#./test.py 
+Using 'Tesseract'
+0055
+1 796
+         
+         另外注意tesseract是使用subprocess通过shell命令去调用的，所以对效率不能指望太高。两年前我使用的是https://pypi.python.org/pypi/PyTesser/0.0.1，但是这个已经有好几年没有更新了。https://pypi.python.org/pypi/tesserwrap/0.1.1据说是直接调用tesseract的c++ api，效率应该会高点，但是我这边没有安装成功。
+最后希望大家一起研究，有新的的进展知会下，多谢！
+
